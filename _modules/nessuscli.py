@@ -29,15 +29,22 @@ class CommandResults(dict):
 		super().__init__(*args, **kwargs)
 		self.update(self._parse_result(result_string))
 		
-	def __call__(self, search_re):
+	def __call__(self, search_re, value_re = None):
 		'''Call magic
-		Search for a line with certain regular expression.
+		Search for a line with certain regular expression. Applies a regular expression to the value if provided.
 		'''
 		
 		LOGGER.debug('Looking for a LogLine like: %s', other)
 		for key_ in self:
 			if re.match(search_re, key_):
-				return self[key_]
+				if value_re is None:
+					return self[key_]
+				else:
+					result = re.match(value_re, self[key_])
+					if result is None:
+						raise ValueError('Error validating value for "{}": {} <> {}'.format(key_, self[key_], value_re))
+					else:
+						return result.groupdict()
 		LOGGER.debug("Couldn't find '%s' in %s", other, self)
 		raise KeyError('The expression did not yield any key: {}'.format(search_re))
 		
