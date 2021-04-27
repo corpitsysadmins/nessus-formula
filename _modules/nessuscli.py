@@ -29,14 +29,14 @@ class CommandResults(dict):
 		super().__init__(*args, **kwargs)
 		self.update(self._parse_result(result_string))
 		
-	def __call__(self, search_re, value_re = None):
+	def __call__(self, key_re, value_re = None):
 		'''Call magic
 		Search for a line with certain regular expression. Applies a regular expression to the value if provided.
 		'''
 		
 		LOGGER.debug('Looking for a LogLine like: %s', other)
 		for key_ in self:
-			if re.match(search_re, key_):
+			if re.match(key_re, key_):
 				if value_re is None:
 					return self[key_]
 				else:
@@ -46,7 +46,7 @@ class CommandResults(dict):
 					else:
 						return result.groupdict()
 		LOGGER.debug("Couldn't find '%s' in %s", other, self)
-		raise KeyError('The expression did not yield any key: {}'.format(search_re))
+		raise KeyError('The expression did not yield any key: {}'.format(key_re))
 		
 	def _parse_result(self, result_string):
 		
