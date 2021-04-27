@@ -27,7 +27,7 @@ class CommandResults(dict):
 		'''
 		
 		super().__init__(*args, **kwargs)
-		self.update(_parse_result(result_string))
+		self.update(self._parse_result(result_string))
 		
 	def __call__(self, other):
 		'''Call magic
