@@ -11,7 +11,7 @@ nessus_agent_installation:
       - {{ agent_data.package_name }}: {{ agent_data.package_file }}
 
 nessus_agent_linked:
-  nessus.agent.linked:
+  nessus_agent.linked:
     - nessuscli: {{ agent_data.nessuscli }}
     - host: {{ agent_data.host }}
     - port: {{ agent_data.port }}
@@ -30,7 +30,7 @@ nessus_agent_service_running:
 {% else %}
 
 nessus_agent_unlinked:
-  nessus.agent.unlinked:
+  nessus_agent.unlinked:
     - nessuscli: {{ agent_data.nessuscli }}
     - status_messages: {{ agent_data.status_messages|json }}
 
