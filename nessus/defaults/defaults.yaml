@@ -1,0 +1,5 @@
+status_messages :
+  linked : Link\s+status:\s+Connected\s+to\s+\S+:\d{1,5}
+  unlinked : Not linked to a manager
+  link_success : Successfully linked to\s*\S+:\d{1,5}
+  unlink_success : Successfully unlinked

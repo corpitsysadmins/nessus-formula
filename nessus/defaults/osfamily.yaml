@@ -1,0 +1,3 @@
+RedHat:
+  nessuscli : /opt/nessus_agent/sbin/nessuscli
+  service_name : nessusagent
