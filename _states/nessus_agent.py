@@ -44,23 +44,34 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 		ret['comment'] = 'Getting the status of the agent failed: ' + str(error)
 		return ret
 	
-	if status_results > status_messages['unlinked']:
+	linked = None
+	try:
+		unlink_details = status_results(**status_messages['unlinked'])
 		linked = False
-		unlink_details = status_results(status_messages['unlinked'])
-	elif status_results > status_messages['linked']:
-		link_details = status_results(status_messages['linked'])
-		if (link_details.server_host == kwargs['host']) and (int(link_details.server_port) == int(kwargs['port'])):
-			linked = True
+	except KeyError:
+		LOGGING.debug("The agent doesn't seem to be unlinked")
+	
+	if linked is None:
+		try:
+			link_details = status_results(**status_messages['linked'])
+		except KeyError:
+			LOGGING.debug("The agent doesn't seem to be linked")
+		except ValueError:
+			LOGGING.error("The agent link message is not supported: %s", status_results)
 		else:
-			unlink_details = link_details
-			linked = False
-	else:
+			if (link_details['server_host'] == kwargs['host']) and (int(link_details['server_port']) == int(kwargs['port'])):
+				linked = True
+			else:
+				unlink_details = link_details
+				linked = False
+
+	if linked is None:
 		ret['comment'] = 'Getting the status of the agent failed'
 		return ret
 	
 	if linked:
 		ret['result'] = True
-		ret['comment'] = 'The agent is already linked to {}:{}'.format(link_details.server_host, link_details.server_port)
+		ret['comment'] = 'The agent is already linked to {}:{}'.format(link_details['server_host'], link_details['server_port'])
 	else:
 		if __opts__['test']:
 			ret['result'] = None
