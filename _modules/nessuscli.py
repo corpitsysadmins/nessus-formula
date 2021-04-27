@@ -29,35 +29,17 @@ class CommandResults(dict):
 		super().__init__(*args, **kwargs)
 		self.update(self._parse_result(result_string))
 		
-	def __call__(self, other):
+	def __call__(self, search_re):
 		'''Call magic
-		Search for a LogLine that matches "other".
+		Search for a line with certain regular expression.
 		'''
 		
 		LOGGER.debug('Looking for a LogLine like: %s', other)
-		for result in self:
-			if result > other:
-				LOGGER.debug('Found it: %s', result)
-				return result
+		for key_ in self:
+			if re.match(search_re, key_):
+				return self[key_]
 		LOGGER.debug("Couldn't find '%s' in %s", other, self)
-		return None
-		
-	def __gt__(self, other):
-		'''Superset magic
-		This uses the "set logic" interpretation of the ">" operator to check that the "other" string (regular expression) is contained in one of the LogLines.
-		'''
-		
-		if self(other) is None:
-			return False
-		else:
-			return True
-	
-	def __str__(self):
-		'''String magic
-		Returns some debuggable representation.
-		'''
-		
-		return ' | '.join([str(value) for value in self])
+		raise KeyError('The expression did not yield any key: {}'.format(search_re))
 		
 	def _parse_result(self, result_string):
 		
