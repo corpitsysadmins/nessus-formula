@@ -29,7 +29,7 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 	}
 	kwargs.update({'host' : host, 'port' : port, 'key' : key})
 	
-	if not __salt__['nessus_agent.is_configurable'](nessuscli):
+	if not __salt__['nessuscli.is_configurable'](nessuscli):
 		if __opts__['test']:
 			ret['result'] = None
 			ret['comment'] = "The Nessus agent doesn't seem to be installed; if installed in this state run, it would have been linked."
@@ -39,7 +39,7 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 		return ret
 	
 	try:
-		status_results = __salt__['nessus_agent.run_agent_command'](nessuscli, 'status')
+		status_results = __salt__['nessuscli.run_agent_command'](nessuscli, 'status')
 	except RuntimeError as error:
 		ret['comment'] = 'Getting the status of the agent failed: ' + str(error)
 		return ret
@@ -65,10 +65,10 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 		if __opts__['test']:
 			ret['result'] = None
 			ret['comment'] = 'The agent would be linked to {host}:{port}'.format(**kwargs)
-			ret['changes'].update({'nessus_agent' : {'old' : str(unlink_details), 'new' : 'Linked to: {host}:{port}'.format(**kwargs)}})
+			ret['changes'].update({'nessuscli' : {'old' : str(unlink_details), 'new' : 'Linked to: {host}:{port}'.format(**kwargs)}})
 		else:
 			try:
-				link_results = __salt__['nessus_agent.run_agent_command'](nessuscli, 'link', **kwargs)
+				link_results = __salt__['nessuscli.run_agent_command'](nessuscli, 'link', **kwargs)
 			except RuntimeError:
 				ret['comment'] = "The unlink command didn't run successfully"
 				return ret
@@ -76,7 +76,7 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 				link_details = link_results(status_messages['link_success'])
 				ret['result'] = True
 				ret['comment'] = str(link_details)
-				ret['changes'].update({'nessus_agent' : {'old' : str(unlink_details), 'new' : str(link_details)}})
+				ret['changes'].update({'nessuscli' : {'old' : str(unlink_details), 'new' : str(link_details)}})
 			else:	
 				ret['result'] = False
 				ret['comment'] = 'Unlinking failed: {}'.format(str(link_results))
@@ -95,13 +95,13 @@ def unlinked(name, nessuscli, status_messages):
 		'comment'	: '',
 	}
 	
-	if not __salt__['nessus_agent.is_configurable'](nessuscli):
+	if not __salt__['nessuscli.is_configurable'](nessuscli):
 		ret['result'] = True
 		ret['comment'] = "The Nessus agent doesn't seems to be installed; if installed in this state run, it would have been unlinked"
 		return ret
 	
 	try:
-		status_results = __salt__['nessus_agent.run_agent_command'](nessuscli, 'status')
+		status_results = __salt__['nessuscli.run_agent_command'](nessuscli, 'status')
 	except RuntimeError as error:
 		ret['comment'] = 'Getting the status of the agent failed: ' + str(error)
 		return ret
@@ -121,7 +121,7 @@ def unlinked(name, nessuscli, status_messages):
 			ret['comment'] = 'The agent would be unlinked from {}:{}'.format(link_details.server_host, link_details.server_port)
 		else:
 			try:
-				unlink_results = __salt__['nessus_agent.run_agent_command'](nessuscli, 'unlink')
+				unlink_results = __salt__['nessuscli.run_agent_command'](nessuscli, 'unlink')
 			except RuntimeError:
 				ret['comment'] = "The unlink command didn't run successfully"
 				return ret
@@ -129,7 +129,7 @@ def unlinked(name, nessuscli, status_messages):
 				unlink_details = unlink_results(status_messages['unlink_success'])
 				ret['result'] = True
 				ret['comment'] = str(unlink_details)
-				ret['changes'].update({'nessus_agent' : {'old' : str(link_details), 'new' : str(unlink_details)}})
+				ret['changes'].update({'nessuscli' : {'old' : str(link_details), 'new' : str(unlink_details)}})
 			else:	
 				ret['result'] = False
 				ret['comment'] = 'Unlinking failed: {}'.format(str(unlink_results))
