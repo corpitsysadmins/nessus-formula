@@ -1,3 +1,4 @@
 RedHat:
-  nessuscli : /opt/nessus_agent/sbin/nessuscli
+  package_name : NessusAgent
   service_name : nessusagent
+  nessuscli : /opt/nessus_agent/sbin/nessuscli
