@@ -18,16 +18,8 @@ LOGGER = logging.getLogger(__name__)
 
 class LogLine(str):
 	'''LogLine abstraction
-	Gets the log text line and parses it as much as possible.
+	Enables the filtering of the line
 	'''
-	
-	def __init__(self, log_line):
-		'''Initialization magic
-		Not much.
-		'''
-		
-		LOGGER.debug('Creating LogLine from: %s', log_line)
-		super().__init__(log_line)
 	
 	def __or__(self, other):
 		'''Superset magic
@@ -100,8 +92,6 @@ def run(nessuscli, *params, **kwargs):
 	LOGGER.debug('Running nessuscli command: %s %s', nessuscli, ' '.join((*params, *kwparams)))
 	command_str = __salt__['cmd.run']('{} {}'.format(nessuscli, ' '.join((*params, *kwparams))))
 	command_result = CommandResults(result_string = command_str)
-	
-	return command_result
 	
 	if not len(command_result):
 		raise RuntimeError("The run didn't return a valid line")
