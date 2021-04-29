@@ -43,8 +43,8 @@ def _agent_status(nessuscli, status_messages, expected_host = None, expected_por
 		else:
 			link_details = link_details[0]
 			linked = True
-			link_details_groups = (link_details | status_messages['linked']).groupdict()
-			if (link_details_groups['server_host'] != expected_host) or (int(link_details_groups['server_port']) != int(expected_port)):
+			link_details_groups = link_details.groupdict()
+			if (expected_host is not None) and (expected_port is not None) and ((link_details_groups['server_host'] != expected_host) or (int(link_details_groups['server_port']) != int(expected_port))):
 				unlink_details = link_details
 	
 	return linked, link_details, unlink_details
