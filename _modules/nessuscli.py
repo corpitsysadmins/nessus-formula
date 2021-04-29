@@ -49,17 +49,18 @@ class CommandResults(list):
 		
 		super().__init__([LogLine(line_) for line_ in args])
 		
-	def __gt__(self, other):
+	def __and__(self, other):
 		'''Superset magic
-		This uses the "set logic" interpretation of the ">" operator to check that the "other" string (regular expression) is contained in one of the LogLines.
+		This uses the "set logic" interpretation of the "&" operator to check that the "other" string (regular expression) to create a list with the contained LogLines that matches the regular expression.
 		'''
 		
+		result = []
 		for line_ in self:
-			result = line_ | other			
-			if result is not None:
-				return result
+			filtering = line_ | other			
+			if filtering is not None:
+				result.append(filtering)
 		
-		return None		
+		return result		
 	
 
 def is_configurable(nessuscli):
@@ -89,9 +90,4 @@ def run(nessuscli, *params, **kwargs):
 	
 	LOGGER.debug('Running nessuscli command: %s %s', nessuscli, ' '.join((*params, *kwparams)))
 	command_str = __salt__['cmd.run']('{} {}'.format(nessuscli, ' '.join((*params, *kwparams))))
-	command_result = CommandResults(command_str)
-	
-	if not len(command_result):
-		raise RuntimeError("The run didn't return a valid line")
-	else:
-		return command_result
+	return CommandResults(command_str)
