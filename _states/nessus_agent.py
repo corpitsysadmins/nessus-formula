@@ -55,9 +55,9 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 	
 	if linked is None:
 		link_details = status_results & status_messages['linked']
-		if len(unlink_details) > 1:
+		if len(link_details) > 1:
 			raise ValueError('The regular expression for "linked" yield too many results')
-		elif not len(unlink_details):
+		elif not len(link_details):
 			LOGGER.debug("The agent doesn't seem to be linked")
 		else:
 			link_details = link_details[0].groupdict()
