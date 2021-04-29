@@ -85,8 +85,8 @@ def is_configurable(nessuscli):
 		return True
 
 def run(nessuscli, *params, **kwargs):
-	'''Agent command
-	Run the agent command and return the log lines.
+	'''Run nessuscli command
+	Run the nessuscli command and return the log lines.
 	'''
 	
 	if not is_configurable(nessuscli):
