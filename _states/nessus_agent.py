@@ -46,10 +46,12 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 	
 	linked = None
 	unlink_details = status_results & status_messages['unlinked']
-	if len(unlink_details):
-		linked = False
-	else:
+	if len(unlink_details) > 1:
+			raise ValueError('The regular expression for "unlinked" yield too many results')
+	elif not len(unlink_details):
 		LOGGING.debug("The agent doesn't seem to be unlinked")
+	else:
+		linked = False
 	
 	if linked is None:
 		link_details = status_results & status_messages['linked']
@@ -58,6 +60,7 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 		elif not len(unlink_details):
 			LOGGING.debug("The agent doesn't seem to be linked")
 		else:
+			link_details = link_details[0].groupdict()
 			if (link_details['server_host'] == kwargs['host']) and (int(link_details['server_port']) == int(kwargs['port'])):
 				linked = True
 			else:
