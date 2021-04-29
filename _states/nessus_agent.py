@@ -82,18 +82,22 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 			ret['changes'].update({'nessuscli' : {'old' : str(unlink_details), 'new' : 'Linked to: {host}:{port}'.format(**kwargs)}})
 		else:
 			try:
-				link_results = __salt__['nessuscli.run_agent_command'](nessuscli, 'link', **kwargs)
+				linking_results = __salt__['nessuscli.run'](nessuscli, 'agent', 'link', **kwargs)
 			except RuntimeError:
-				ret['comment'] = "The unlink command didn't run successfully"
+				ret['comment'] = "The link command didn't run successfully"
 				return ret
-			if link_results > status_messages['link_success']:
-				link_details = link_results(status_messages['link_success'])
-				ret['result'] = True
-				ret['comment'] = str(link_details)
-				ret['changes'].update({'nessuscli' : {'old' : str(unlink_details), 'new' : str(link_details)}})
-			else:	
+			
+			link_details = linking_results & status_messages['link_success']
+			if len(link_details) > 1:
+				raise ValueError('The regular expression for "link_success" yield too many results')
+			elif not len(link_details):
+				LOGGER.debug("The agent link didn't return an expected message")
 				ret['result'] = False
-				ret['comment'] = 'Unlinking failed: {}'.format(str(link_results))
+				ret['comment'] = 'Linking failed: {}'.format(str(linking_results))
+			else:
+				ret['result'] = True
+				ret['comment'] = link_details[0]
+				ret['changes'].update({'nessuscli' : {'old' : str(unlink_details), 'new' : str(link_details[0])}})	
 	
 	return ret
 
