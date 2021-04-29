@@ -16,7 +16,7 @@ import re
 
 LOGGER = logging.getLogger(__name__)
 
-def _agent_status(nessuscli, status_messages, expected_host, expected_port):
+def _agent_status(nessuscli, status_messages, expected_host = None, expected_port = None):
 	'''Agent status command
 	Run the agent status command and return the parsed status.
 	'''
@@ -112,7 +112,7 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 	
 	return ret
 
-def unlinked(name, nessuscli, status_messages):
+def unlinked(name, nessuscli, status_messages, *args, **kwargs):
 	'''Unlink agent
 	Unlink an already configured agent from the Nessus/Tenable server/cloud.
 	'''
@@ -130,7 +130,7 @@ def unlinked(name, nessuscli, status_messages):
 		return ret
 	
 	try:
-		linked, unlink_details, link_details = _agent_status(nessuscli, status_messages, kwargs['host'], kwargs['port'])
+		linked, unlink_details, link_details = _agent_status(nessuscli, status_messages)
 	except RuntimeError as error:
 		ret['comment'] = 'Getting the status of the agent failed: ' + str(error)
 		return ret
