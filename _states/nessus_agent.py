@@ -23,7 +23,7 @@ def _agent_status(nessuscli, status_messages, expected_host = None, expected_por
 	
 	status_results = __salt__['nessuscli.run'](nessuscli, 'agent', 'status')
 	
-	linked, unlink_details, link_details = None, None, None
+	linked, link_details, unlink_details = None, None, None
 	
 	unlink_details = status_results & status_messages['unlinked']
 	if len(unlink_details) > 1:
@@ -42,14 +42,12 @@ def _agent_status(nessuscli, status_messages, expected_host = None, expected_por
 			LOGGER.debug("The agent doesn't seem to be linked")
 		else:
 			link_details = link_details[0]
+			linked = True
 			link_details_groups = (link_details | status_messages['linked']).groupdict()
-			if (link_details_groups['server_host'] == expected_host) and (int(link_details_groups['server_port']) == int(expected_port)):
-				linked = True
-			else:
+			if (link_details_groups['server_host'] != expected_host) or (int(link_details_groups['server_port']) != int(expected_port)):
 				unlink_details = link_details
-				linked = False
 	
-	return linked, unlink_details, link_details
+	return linked, link_details, unlink_details
 
 def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 	'''Link agent
@@ -132,12 +130,12 @@ def unlinked(name, nessuscli, status_messages, *args, **kwargs):
 		return ret
 	
 	try:
-		linked, unlink_details, link_details = _agent_status(nessuscli, status_messages)
+		linked, link_details, unlink_details = _agent_status(nessuscli, status_messages)
 	except RuntimeError as error:
 		ret['comment'] = 'Getting the status of the agent failed: ' + str(error)
 		return ret
 	else:
-		LOGGER.debug('Current agent status is: %s | %s | %s', linked, unlink_details, link_details)
+		LOGGER.debug('Current agent status is: %s | %s | %s', linked, link_details, unlink_details)
 	
 	if linked is None:
 		ret['comment'] = 'Getting the status of the agent failed'
