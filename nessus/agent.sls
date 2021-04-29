@@ -7,8 +7,10 @@
 nessus_agent_installation:
   pkg.installed:
     - name: {{ agent_data.package_name }}
+{% if agent_data.package_file is defined %}
     - sources:
       - {{ agent_data.package_name }}: {{ agent_data.package_file }}
+{% endif %}
 
 nessus_agent_linked:
   nessus_agent.linked:
