@@ -38,7 +38,26 @@ class LogLine(str):
 		'''
 		
 # 		LOGGER.debug('Trying to match "%s" in this line: %s', other, self)
-		return re.match(other, self)
+		result = re.match(other, self)
+		if result is None:
+			return None
+		else:
+			ret = FilteredLogLine(self)
+			ret._parsed = result
+			return ret
+
+
+class FilteredLogLine(str):
+	'''Filtered LogLine abstraction
+	Result of a line filtering. Expected to include a "._parse" attributing holding the re.Match object.
+	'''
+	
+	def groupdict(self):
+		'''Parsed results
+		Get the groups from the match object.
+		'''
+		
+		return self._parsed.groupdict()
 
 
 class CommandResults(list):
@@ -62,12 +81,13 @@ class CommandResults(list):
 		'''
 		
 		result = []
-		for line_ in self:			
-			if line_ @ other:
-				result.append(line_)
+		for line_ in self:
+			filtered_line = line_ | other			
+			if filtered_line is not None:
+				result.append(filtered_line)
 		
 		return result		
-	
+
 
 def is_configurable(nessuscli):
 	'''Check for nessuscli
