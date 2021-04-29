@@ -167,7 +167,7 @@ def unlinked(name, nessuscli, status_messages, *args, **kwargs):
 				new_linked, new_link_details, new_unlink_details = _agent_status(nessuscli, status_messages)
 				if not new_linked:
 					ret['result'] = True
-					ret['comment'] = new_link_details
+					ret['comment'] = unlinking_details[0]
 					ret['changes'].update({'nessuscli' : {'old' : str(link_details), 'new' : str(new_unlink_details)}})
 				else:
 					ret['result'] = False
