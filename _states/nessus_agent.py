@@ -78,6 +78,8 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 	except RuntimeError as error:
 		ret['comment'] = 'Getting the status of the agent failed: ' + str(error)
 		return ret
+	else:
+		LOGGER.debug('Current agent status is: %s %s %s', linked, unlink_details, link_details)
 
 	if linked is None:
 		ret['comment'] = 'Getting the status of the agent failed'
@@ -134,6 +136,8 @@ def unlinked(name, nessuscli, status_messages, *args, **kwargs):
 	except RuntimeError as error:
 		ret['comment'] = 'Getting the status of the agent failed: ' + str(error)
 		return ret
+	else:
+		LOGGER.debug('Current agent status is: %s %s %s', linked, unlink_details, link_details)
 	
 	if linked is None:
 		ret['comment'] = 'Getting the status of the agent failed'
