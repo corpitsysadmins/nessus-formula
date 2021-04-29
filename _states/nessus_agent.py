@@ -146,6 +146,7 @@ def unlinked(name, nessuscli, status_messages, *args, **kwargs):
 		ret['comment'] = 'The agent is already unlinked'
 	else:
 		if __opts__['test']:
+			link_details = link_details.groupdict()
 			ret['result'] = None
 			ret['comment'] = 'The agent would be unlinked from {}:{}'.format(link_details['server_host'], link_details['server_port'])
 		else:
