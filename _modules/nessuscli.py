@@ -91,6 +91,7 @@ def run(nessuscli, *params, **kwargs):
 	
 	LOGGER.debug('Running nessuscli command: %s %s', nessuscli, ' '.join((*params, *kwparams)))
 	command_str = __salt__['cmd.run']('{} {}'.format(nessuscli, ' '.join((*params, *kwparams))))
+	LOGGER.debug('Run returned: %s', command_str)
 	command_result = CommandResults(result_string = command_str)
 	
 	if not len(command_result):
