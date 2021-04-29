@@ -7,22 +7,26 @@
 {% import_yaml 'nessus/defaults/os.yaml' as os %}
 {% import_yaml 'nessus/defaults/osfinger.yaml' as osfinger %}
 
-{% set agent_data = {} %}
+{% set osfamily_filtered = salt['grains.filter_by'](osfamily, grain = 'os_family') %}
+{% set os_filtered = salt['grains.filter_by'](os, grain = 'os') %}
+{% set osfinger_filtered = salt['grains.filter_by'](osfinger, grain = 'osfinger') %}
 
 {% if defaults.agent is defined %}
 {% set agent_data = defaults.agent %}
+{% else %}
+{% set agent_data = {} %}
 {% endif %}
 
-{% if osfamily.agent is defined %}
-{% set agent_data = salt['grains.filter_by'](osfamily.agent, grain = 'os_family', merge = agent_data) %}
+{% if osfamily_filtered.agent is defined %}
+{% set agent_data = salt['slsutil.merge'](agent_data, osfamily_filtered.agent) %}
 {% endif %}
 
-{% if os.agent is defined %}
-{% set agent_data = salt['grains.filter_by'](os.agent, grain = 'os', merge = agent_data) %}
+{% if os_filtered.agent is defined %}
+{% set agent_data = salt['slsutil.merge'](agent_data, os_filtered.agent) %}
 {% endif %}
 
-{% if osfinger.agent is defined %}
-{% set agent_data = salt['grains.filter_by'](osfinger.agent, grain = 'osfinger', merge = agent_data) %}
+{% if osfinger_filtered.agent is defined %}
+{% set agent_data = salt['slsutil.merge'](agent_data, osfinger_filtered.agent) %}
 {% endif %}
 
 {% set agent_data = salt['slsutil.merge'](agent_data, salt['pillar.get']('nessus:agent', default = {})) %}
