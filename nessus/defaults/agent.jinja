@@ -14,15 +14,15 @@
 {% endif %}
 
 {% if osfamily.agent is defined %}
-{% set agent_data = salt['grains.filter_by'](osfamily, grain = 'os_family', merge = agent_data) %}
+{% set agent_data = salt['grains.filter_by'](osfamily.agent, grain = 'os_family', merge = agent_data) %}
 {% endif %}
 
 {% if os.agent is defined %}
-{% set agent_data = salt['grains.filter_by'](os, grain = 'os', merge = agent_data) %}
+{% set agent_data = salt['grains.filter_by'](os.agent, grain = 'os', merge = agent_data) %}
 {% endif %}
 
 {% if osfinger.agent is defined %}
-{% set agent_data = salt['grains.filter_by'](osfinger, grain = 'osfinger', merge = agent_data) %}
+{% set agent_data = salt['grains.filter_by'](osfinger.agent, grain = 'osfinger', merge = agent_data) %}
 {% endif %}
 
 {% set agent_data = salt['slsutil.merge'](agent_data, salt['pillar.get']('nessus:agent', default = {})) %}
