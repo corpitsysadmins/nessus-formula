@@ -155,14 +155,18 @@ def unlinked(name, nessuscli, status_messages, *args, **kwargs):
 			except RuntimeError:
 				ret['comment'] = "The unlink command didn't run successfully"
 				return ret
-			if unlink_results > status_messages['unlink_success']:
-				unlink_details = unlink_results(status_messages['unlink_success'])
-				ret['result'] = True
-				ret['comment'] = str(unlink_details)
-				ret['changes'].update({'nessuscli' : {'old' : str(link_details), 'new' : str(unlink_details)}})
-			else:	
+			
+			unlink_details = unlinking_results & status_messages['unlink_success']
+			if len(unlink_details) > 1:
+				raise ValueError('The regular expression for "link_success" yield too many results')
+			elif not len(unlink_details):
+				LOGGER.debug("The agent link didn't return an expected message")
 				ret['result'] = False
-				ret['comment'] = 'Unlinking failed: {}'.format(str(unlink_results))
+				ret['comment'] = 'Linking failed: {}'.format(str(unlink_details))
+			else:
+				ret['result'] = True
+				ret['comment'] = unlink_details[0]
+				ret['changes'].update({'nessuscli' : {'old' : str(link_details), 'new' : str(unlink_details)}})
 	
 	return ret
 	
