@@ -36,11 +36,11 @@ nessus_agent_unlinked:
     - nessuscli: {{ agent_data.nessuscli }}
     - status_messages: {{ agent_data.status_messages|json }}
 
-nessus_agent_removal:
-  pkg.removed:
-    - name: {{ agent_data.package_name }}
-    - require:
-      - nessus_agent_unlinked
+#nessus_agent_removal:
+#  pkg.removed:
+#    - name: {{ agent_data.package_name }}
+#    - require:
+#      - nessus_agent_unlinked
 
 {% endif %}
 
