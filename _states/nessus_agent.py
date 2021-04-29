@@ -16,6 +16,41 @@ import re
 
 LOGGER = logging.getLogger(__name__)
 
+def _agent_status(nessuscli, status_messages, expected_host, expected_port):
+	'''Agent status command
+	Run the agent status command and return the parsed status.
+	'''
+	
+	status_results = __salt__['nessuscli.run'](nessuscli, 'agent', 'status')
+	
+	linked, unlink_details, link_details = None, None, None
+	
+	unlink_details = status_results & status_messages['unlinked']
+	if len(unlink_details) > 1:
+			raise ValueError('The regular expression for "unlinked" yield too many results')
+	elif not len(unlink_details):
+		LOGGER.debug("The agent doesn't seem to be unlinked")
+	else:
+		unlink_details = unlink_details[0]
+		linked = False
+	
+	if linked is None:
+		link_details = status_results & status_messages['linked']
+		if len(link_details) > 1:
+			raise ValueError('The regular expression for "linked" yield too many results')
+		elif not len(link_details):
+			LOGGER.debug("The agent doesn't seem to be linked")
+		else:
+			link_details = link_details[0]
+			link_details_groups = (link_details | status_messages['linked']).groupdict()
+			if (link_details_groups['server_host'] == expected_host) and (int(link_details_groups['server_port']) == int(expected_port)):
+				linked = True
+			else:
+				unlink_details = link_details
+				linked = False
+	
+	return linked, unlink_details, link_details
+
 def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 	'''Link agent
 	Link and already installed Nessus/Tenable agent to a server.
@@ -39,34 +74,10 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 		return ret
 	
 	try:
-		status_results = __salt__['nessuscli.run'](nessuscli, 'agent', 'status')
+		linked, unlink_details, link_details = _agent_status(nessuscli, status_messages, kwargs['host'], kwargs['port'])
 	except RuntimeError as error:
 		ret['comment'] = 'Getting the status of the agent failed: ' + str(error)
 		return ret
-	
-	linked = None
-	unlink_details = status_results & status_messages['unlinked']
-	if len(unlink_details) > 1:
-			raise ValueError('The regular expression for "unlinked" yield too many results')
-	elif not len(unlink_details):
-		LOGGER.debug("The agent doesn't seem to be unlinked")
-	else:
-		unlink_details = unlink_details[0]
-		linked = False
-	
-	if linked is None:
-		link_details = status_results & status_messages['linked']
-		if len(link_details) > 1:
-			raise ValueError('The regular expression for "linked" yield too many results')
-		elif not len(link_details):
-			LOGGER.debug("The agent doesn't seem to be linked")
-		else:
-			link_details = (link_details[0] | status_messages['linked']).groupdict()
-			if (link_details['server_host'] == kwargs['host']) and (int(link_details['server_port']) == int(kwargs['port'])):
-				linked = True
-			else:
-				unlink_details = link_details
-				linked = False
 
 	if linked is None:
 		ret['comment'] = 'Getting the status of the agent failed'
@@ -119,27 +130,25 @@ def unlinked(name, nessuscli, status_messages):
 		return ret
 	
 	try:
-		status_results = __salt__['nessuscli.run_agent_command'](nessuscli, 'status')
+		linked, unlink_details, link_details = _agent_status(nessuscli, status_messages, kwargs['host'], kwargs['port'])
 	except RuntimeError as error:
 		ret['comment'] = 'Getting the status of the agent failed: ' + str(error)
 		return ret
 	
-	if status_results > status_messages['unlinked']:
-		linked = False
-	elif status_results > status_messages['linked']:
-		linked = True
-		link_details = status_results(status_messages['linked'])
-	else:
+	if linked is None:
 		ret['comment'] = 'Getting the status of the agent failed'
 		return ret
 	
-	if linked:
+	if not linked:
+		ret['result'] = True
+		ret['comment'] = 'The agent is already unlinked'
+	else:
 		if __opts__['test']:
 			ret['result'] = None
-			ret['comment'] = 'The agent would be unlinked from {}:{}'.format(link_details.server_host, link_details.server_port)
+			ret['comment'] = 'The agent would be unlinked from {}:{}'.format(link_details['server_host'], link_details['server_port'])
 		else:
 			try:
-				unlink_results = __salt__['nessuscli.run_agent_command'](nessuscli, 'unlink')
+				unlinking_results = __salt__['nessuscli.run'](nessuscli, 'agent', 'unlink')
 			except RuntimeError:
 				ret['comment'] = "The unlink command didn't run successfully"
 				return ret
@@ -151,9 +160,6 @@ def unlinked(name, nessuscli, status_messages):
 			else:	
 				ret['result'] = False
 				ret['comment'] = 'Unlinking failed: {}'.format(str(unlink_results))
-	else:
-		ret['result'] = True
-		ret['comment'] = 'The agent is already unlinked'
 	
 	return ret
 	
