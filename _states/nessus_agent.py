@@ -39,25 +39,24 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 		return ret
 	
 	try:
-		status_results = __salt__['nessuscli.run_agent_command'](nessuscli, 'status')
+		status_results = __salt__['nessuscli.run'](nessuscli, 'agent', 'status')
 	except RuntimeError as error:
 		ret['comment'] = 'Getting the status of the agent failed: ' + str(error)
 		return ret
 	
 	linked = None
-	try:
-		unlink_details = status_results(**status_messages['unlinked'])
+	unlink_details = status_results & status_messages['unlinked']
+	if len(unlink_details):
 		linked = False
-	except KeyError:
+	else:
 		LOGGING.debug("The agent doesn't seem to be unlinked")
 	
 	if linked is None:
-		try:
-			link_details = status_results(**status_messages['linked'])
-		except KeyError:
+		link_details = status_results & status_messages['linked']
+		if len(unlink_details) > 1:
+			raise ValueError('The regular expression for "linked" yield too many results')
+		elif not len(unlink_details):
 			LOGGING.debug("The agent doesn't seem to be linked")
-		except ValueError:
-			LOGGING.error("The agent link message is not supported: %s", status_results)
 		else:
 			if (link_details['server_host'] == kwargs['host']) and (int(link_details['server_port']) == int(kwargs['port'])):
 				linked = True
