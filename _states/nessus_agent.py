@@ -51,6 +51,7 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 	elif not len(unlink_details):
 		LOGGER.debug("The agent doesn't seem to be unlinked")
 	else:
+		unlink_details = unlink_details[0]
 		linked = False
 	
 	if linked is None:
@@ -60,7 +61,7 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 		elif not len(link_details):
 			LOGGER.debug("The agent doesn't seem to be linked")
 		else:
-			link_details = link_details[0].groupdict()
+			link_details = (link_details[0] | status_messages['linked']).groupdict()
 			if (link_details['server_host'] == kwargs['host']) and (int(link_details['server_port']) == int(kwargs['port'])):
 				linked = True
 			else:
