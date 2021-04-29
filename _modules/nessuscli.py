@@ -16,53 +16,58 @@ import re
 
 LOGGER = logging.getLogger(__name__)
 
-class CommandResults(dict):
+class LogLine(str):
+	'''LogLine abstraction
+	Gets the log text line and parses it as much as possible.
+	'''
+	
+	def __init__(self, log_line):
+		'''Initialization magic
+		Not much.
+		'''
+		
+		LOGGER.debug('Creating LogLine from: %s', log_line)
+		super().__init__(log_line)
+	
+	def __or__(self, other):
+		'''Superset magic
+		This basically adds the "filter" function (jinja filter) to the class. The "other" regular expression should use named groups.
+		'''
+		
+		LOGGER.debug('Searching for "%s" in this line: %s', other, self)
+		result = re.match(other, self)
+		if result is None:
+			return None
+		else:
+			return result.groupdict()
+
+
+class CommandResults(list):
 	'''Command result abstraction
 	Groups the log lines from a command run result.
 	'''
 
-	def __init__(self, *args, result_string = None, **kwargs):
+	def __init__(self, *args, **kwargs):
 		'''Initialization magic
 		Doesn't do much.
 		'''
 		
-		super().__init__(*args, **kwargs)
-		self.update(self._parse_result(result_string))
+		if (len(args) == 1) and isinstance(args[0], str):
+			args = args[0].split('\n')
 		
-	def __call__(self, key_re, value_re = None):
-		'''Call magic
-		Search for a line with certain regular expression. Applies a regular expression to the value if provided.
+		super().__init__([LogLine(line_) for line_ in args])
+		
+	def __gt__(self, other):
+		'''Superset magic
+		This uses the "set logic" interpretation of the ">" operator to check that the "other" string (regular expression) is contained in one of the LogLines.
 		'''
 		
-		LOGGER.debug('Looking for a LogLine like: %s', other)
-		for key_ in self:
-			if re.match(key_re, key_):
-				if value_re is None:
-					return self[key_]
-				else:
-					result = re.match(value_re, self[key_])
-					if result is None:
-						raise ValueError('Error validating value for "{}": {} <> {}'.format(key_, self[key_], value_re))
-					else:
-						return result.groupdict()
-		LOGGER.debug("Couldn't find '%s' in %s", other, self)
-		raise KeyError('The expression did not yield any key: {}'.format(key_re))
+		for line_ in self:
+			result = line_ | other			
+			if result is not None:
+				return result
 		
-	def _parse_result(self, result_string):
-		
-		result = {}
-		
-		if result_string is None:
-			return result
-		
-		for line in result_string.split('\n'):
-			split_ = line.split(':', maxsplit = 1)
-			if len(split_) == 2:
-				result[split_[0]] = split_[1]
-			else:
-				LOGGER.warning('Not a valid log line: %s', line)				
-		
-		return result
+		return None		
 	
 
 def is_configurable(nessuscli):
@@ -80,20 +85,20 @@ def is_configurable(nessuscli):
 	else:
 		return True
 
-def run_agent_command(nessuscli, command, *params, **kwargs):
+def run(nessuscli, *params, **kwargs):
 	'''Agent command
 	Run the agent command and return the log lines.
 	'''
+	
+	if not is_configurable(nessuscli):
+		raise RuntimeError('It does not looks like the Nessus agent is installed.')
 	
 	kwparams = []
 	for key, value in kwargs.items():
 		kwparams.append('--{}={}'.format(key, value))
 	
-	if not is_configurable(nessuscli):
-		raise RuntimeError('It does not looks like the Nessus agent is installed.')
-	
-	LOGGER.debug('Running agent state command: %s agent %s', nessuscli, ' '.join((command, *params, *kwparams)))
-	command_str = __salt__['cmd.run']('{} agent {}'.format(nessuscli, ' '.join((command, *params, *kwparams))))
+	LOGGER.debug('Running nessuscli command: %s %s', nessuscli, ' '.join((*params, *kwparams)))
+	command_str = __salt__['cmd.run']('{} {}'.format(nessuscli, ' '.join((*params, *kwparams))))
 	command_result = CommandResults(result_string = command_str)
 	
 	if not len(command_result):
