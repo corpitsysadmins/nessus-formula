@@ -26,7 +26,7 @@ class LogLine(str):
 		Check if the "other" regular expression matches this string.
 		'''
 		
-		LOGGER.debug('Checking if regular expression matches')
+# 		LOGGER.debug('Checking if regular expression matches')
 		if (self | other) is None:
 			return False
 		else:
@@ -37,7 +37,7 @@ class LogLine(str):
 		This basically adds the "filter" function (jinja filter) to the class. The "other" regular expression should use named groups.
 		'''
 		
-		LOGGER.debug('Trying to match "%s" in this line: %s', other, self)
+# 		LOGGER.debug('Trying to match "%s" in this line: %s', other, self)
 		return re.match(other, self)
 
 
