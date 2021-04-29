@@ -87,7 +87,10 @@ def run(nessuscli, *params, **kwargs):
 	
 	kwparams = []
 	for key, value in kwargs.items():
-		kwparams.append('--{}={}'.format(key, value))
+		if key[0] == '_':
+			LOGGER.debug('Ignoring keyword argument: %s = %s', key, value)
+		else:
+			kwparams.append('--{}={}'.format(key, value))
 	
 	LOGGER.debug('Running nessuscli command: %s %s', nessuscli, ' '.join((*params, *kwparams)))
 	command_str = __salt__['cmd.run']('{} {}'.format(nessuscli, ' '.join((*params, *kwparams))))
