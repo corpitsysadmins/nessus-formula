@@ -101,6 +101,8 @@ def run(nessuscli, *params, **kwargs):
 	command_str = __salt__['cmd.run']('{} {}'.format(nessuscli, ' '.join((*params, *kwparams))))
 	command_result = CommandResults(result_string = command_str)
 	
+	return command_result
+	
 	if not len(command_result):
 		raise RuntimeError("The run didn't return a valid line")
 	else:
