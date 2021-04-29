@@ -72,25 +72,26 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 		return ret
 	
 	try:
-		linked, unlink_details, link_details = _agent_status(nessuscli, status_messages, kwargs['host'], kwargs['port'])
+		linked, link_details, unlink_details = _agent_status(nessuscli, status_messages, host, port)
 	except RuntimeError as error:
 		ret['comment'] = 'Getting the status of the agent failed: ' + str(error)
 		return ret
 	else:
-		LOGGER.debug('Current agent status is: %s | %s | %s', linked, unlink_details, link_details)
+		LOGGER.debug('Current agent status is: %s | %s | %s', linked, link_details, unlink_details)
 
 	if linked is None:
 		ret['comment'] = 'Getting the status of the agent failed'
 		return ret
 	
 	if linked:
+		link_details = link_details.groupdict()
 		ret['result'] = True
 		ret['comment'] = 'The agent is already linked to {}:{}'.format(link_details['server_host'], link_details['server_port'])
 	else:
 		if __opts__['test']:
 			ret['result'] = None
-			ret['comment'] = 'The agent would be linked to {host}:{port}'.format(**kwargs)
-			ret['changes'].update({'nessuscli' : {'old' : str(unlink_details), 'new' : 'Linked to: {host}:{port}'.format(**kwargs)}})
+			ret['comment'] = 'The agent would be linked to {host}:{port}'.format(host = host, port = port)
+			ret['changes'].update({'nessuscli' : {'old' : str(unlink_details), 'new' : 'Linked to: {host}:{port}'.format(host = host, port = port)}})
 		else:
 			try:
 				linking_results = __salt__['nessuscli.run'](nessuscli, 'agent', 'link', **kwargs)
@@ -98,17 +99,22 @@ def linked(name, nessuscli, status_messages, host, port, key, **kwargs):
 				ret['comment'] = "The link command didn't run successfully"
 				return ret
 			
-			link_details = linking_results & status_messages['link_success']
-			if len(link_details) > 1:
+			linking_details = linking_results & status_messages['link_success']
+			if len(linking_details) > 1:
 				raise ValueError('The regular expression for "link_success" yield too many results')
-			elif not len(link_details):
+			elif not len(linking_details):
 				LOGGER.debug("The agent link didn't return an expected message")
 				ret['result'] = False
 				ret['comment'] = 'Linking failed: {}'.format(str(linking_results))
 			else:
-				ret['result'] = True
-				ret['comment'] = link_details[0]
-				ret['changes'].update({'nessuscli' : {'old' : str(unlink_details), 'new' : str(link_details[0])}})	
+				new_linked, new_link_details, new_unlink_details = _agent_status(nessuscli, status_messages, host, port)
+				if new_linked:
+					ret['result'] = True
+					ret['comment'] = linking_details[0]
+					ret['changes'].update({'nessuscli' : {'old' : str(unlink_details), 'new' : str(new_link_details)}})
+				else:
+					ret['result'] = False
+					ret['comment'] = 'Linking failed: {}'.format(new_unlink_details)
 	
 	return ret
 
@@ -160,9 +166,9 @@ def unlinked(name, nessuscli, status_messages, *args, **kwargs):
 			if len(unlinking_details) > 1:
 				raise ValueError('The regular expression for "link_success" yield too many results')
 			elif not len(unlinking_details):
-				LOGGER.debug("The agent link didn't return an expected message")
+				LOGGER.debug("The agent unlink didn't return an expected message")
 				ret['result'] = False
-				ret['comment'] = 'Linking failed: {}'.format(str(unlinking_details))
+				ret['comment'] = 'Unlinking failed: {}'.format(str(unlinking_details))
 			else:
 				new_linked, new_link_details, new_unlink_details = _agent_status(nessuscli, status_messages)
 				if not new_linked:
@@ -171,7 +177,7 @@ def unlinked(name, nessuscli, status_messages, *args, **kwargs):
 					ret['changes'].update({'nessuscli' : {'old' : str(link_details), 'new' : str(new_unlink_details)}})
 				else:
 					ret['result'] = False
-					ret['comment'] = 'Linking failed: {}'.format(new_link_details)
+					ret['comment'] = 'Unlinking failed: {}'.format(new_link_details)
 	
 	return ret
 	
