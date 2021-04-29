@@ -21,17 +21,24 @@ class LogLine(str):
 	Enables the filtering of the line
 	'''
 	
+	def __matmul__(self, other):
+		'''Superset magic
+		Check if the "other" regular expression matches this string.
+		'''
+		
+		LOGGER.debug('Checking if regular expression matches')
+		if (self | other) is None:
+			return False
+		else:
+			return True
+	
 	def __or__(self, other):
 		'''Superset magic
 		This basically adds the "filter" function (jinja filter) to the class. The "other" regular expression should use named groups.
 		'''
 		
-		LOGGER.debug('Searching for "%s" in this line: %s', other, self)
-		result = re.match(other, self)
-		if result is None:
-			return False
-		else:
-			return True
+		LOGGER.debug('Trying to match "%s" in this line: %s', other, self)
+		return re.match(other, self)
 
 
 class CommandResults(list):
@@ -56,7 +63,7 @@ class CommandResults(list):
 		
 		result = []
 		for line_ in self:			
-			if line_ | other:
+			if line_ @ other:
 				result.append(line_)
 		
 		return result		
