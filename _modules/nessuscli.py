@@ -85,12 +85,7 @@ def run(nessuscli, *params, **kwargs):
 	if not is_configurable(nessuscli):
 		raise RuntimeError('It does not looks like the Nessus agent is installed.')
 	
-	kwparams = []
-	for key, value in kwargs.items():
-		if key[0] == '_':
-			LOGGER.debug('Ignoring keyword argument: %s = %s', key, value)
-		else:
-			kwparams.append('--{}={}'.format(key, value))
+	kwparams = ['--{}={}'.format(key, value) for key, value in kwargs.items() if key[0] != '_']
 	
 	LOGGER.debug('Running nessuscli command: %s %s', nessuscli, ' '.join((*params, *kwparams)))
 	command_str = __salt__['cmd.run']('{} {}'.format(nessuscli, ' '.join((*params, *kwparams))))
