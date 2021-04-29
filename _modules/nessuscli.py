@@ -29,9 +29,9 @@ class LogLine(str):
 		LOGGER.debug('Searching for "%s" in this line: %s', other, self)
 		result = re.match(other, self)
 		if result is None:
-			return None
+			return False
 		else:
-			return result.groupdict()
+			return True
 
 
 class CommandResults(list):
@@ -55,10 +55,9 @@ class CommandResults(list):
 		'''
 		
 		result = []
-		for line_ in self:
-			filtering = line_ | other			
-			if filtering is not None:
-				result.append(filtering)
+		for line_ in self:			
+			if line_ | other:
+				result.append(line_)
 		
 		return result		
 	
