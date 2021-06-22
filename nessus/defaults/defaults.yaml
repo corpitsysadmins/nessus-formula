@@ -1,6 +1,6 @@
 agent:
   status_messages :
     linked : (?i)^\s*Linked\s+to:\s*(?P<server_host>\S+?)(\:(?P<server_port>\d{1,5}))?\s*$
-    unlinked : (?i)^\s*Link\s+status:\s+Not\s+linked\s+to\s+a\s+manager\s*$
+    unlinked : (?i)^\s*Linked\s+to:\s*None\s*$
     link_success : (?i)^\s*\[(?P<log_level>.+?)\]\s+\[(?P<nessus_module>.+?)\]\s+Successfully\s+linked\s+to\s+(?P<server_host>\S+?)(\:(?P<server_port>\d{1,5}))?\s*$
     unlink_success : (?i)^\s*\[(?P<log_level>.+?)\]\s+\[(?P<nessus_module>.+?)\]\s+Successfully\s+unlinked\s*$
